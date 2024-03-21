@@ -15,11 +15,7 @@ import (
 )
 
 func TestLocalFile(t *testing.T) {
-	fw, err := local.NewLocalFileWriter("arrow.parquet")
-	if err != nil {
-		log.Println("Can't create file", err)
-		return
-	}
+	// build arrow record.
 	mem := memory.NewCheckedAllocator(memory.NewGoAllocator())
 	schema := arrow.NewSchema(
 		[]arrow.Field{
@@ -61,6 +57,11 @@ func TestLocalFile(t *testing.T) {
 	}
 	rec := b.NewRecord()
 
+	fw, err := local.NewLocalFileWriter("arrow.parquet")
+	if err != nil {
+		log.Println("Can't create file", err)
+		return
+	}
 	w, err := writer.NewArrowWriter(schema, fw, 1)
 	if err != nil {
 		log.Println("Can't create parquet writer", err)

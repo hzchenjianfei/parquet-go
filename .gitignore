@@ -5,6 +5,7 @@
 *.orig
 *.tmp
 *.vscode
+*.parquet
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:
@@ -223,7 +224,6 @@ cscope.po.out
 *mies
 
 # Other names that would make sense
-*tests
 *testsdir
 *testsfile
 *testsfiles
