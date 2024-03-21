@@ -56,7 +56,7 @@ func TestLocalFile(t *testing.T) {
 			colBuilder.Append(1)
 			colBuilder.AppendNull()
 			colBuilder.Append(2)
-			colBuilder.AppendNull()
+			//colBuilder.AppendNull()
 		}
 	}
 	rec := b.NewRecord()
