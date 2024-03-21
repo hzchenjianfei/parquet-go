@@ -1,7 +1,8 @@
-package main
+package tests
 
 import (
 	"log"
+	"testing"
 	"time"
 
 	"github.com/xitongsys/parquet-go-source/local"
@@ -10,9 +11,9 @@ import (
 	"github.com/xitongsys/parquet-go/writer"
 )
 
-type Student struct {
+type Student6 struct {
 	Name    string  `parquet:"name=name, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	Age     int32   `parquet:"name=age, type=INT32"`
+	Age     int32   `parquet:"name=age, type=INT32, encoding=PLAIN"`
 	Id      int64   `parquet:"name=id, type=INT64"`
 	Weight  float32 `parquet:"name=weight, type=FLOAT"`
 	Sex     bool    `parquet:"name=sex, type=BOOLEAN"`
@@ -20,33 +21,27 @@ type Student struct {
 	Ignored int32   //without parquet tag and won't write
 }
 
-type Student2 struct {
-	Name string `parquet:"name=name, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	Age  int32  `parquet:"name=age, type=INT32"`
-	Id   int64  `parquet:"name=id, type=INT64"`
-	Sex  *bool
-}
-
-func main() {
+func TestLocalFlat(t *testing.T) {
 	var err error
-	fw, err := local.NewLocalFileWriter("flat.parquet")
+	fw, err := local.NewLocalFileWriter("output/flat.parquet")
 	if err != nil {
 		log.Println("Can't create local file", err)
 		return
 	}
 
 	//write
-	pw, err := writer.NewParquetWriter(fw, new(Student), 4)
+	pw, err := writer.NewParquetWriter(fw, new(Student6), 4)
 	if err != nil {
 		log.Println("Can't create parquet writer", err)
 		return
 	}
 
 	pw.RowGroupSize = 128 * 1024 * 1024 //128M
+	pw.PageSize = 8 * 1024              //8K
 	pw.CompressionType = parquet.CompressionCodec_SNAPPY
 	num := 100
 	for i := 0; i < num; i++ {
-		stu := Student{
+		stu := Student6{
 			Name:   "StudentName",
 			Age:    int32(20 + i%5),
 			Id:     int64(i),
@@ -66,13 +61,13 @@ func main() {
 	fw.Close()
 
 	///read
-	fr, err := local.NewLocalFileReader("flat.parquet")
+	fr, err := local.NewLocalFileReader("output/flat.parquet")
 	if err != nil {
 		log.Println("Can't open file")
 		return
 	}
 
-	pr, err := reader.NewParquetReader(fr, new(Student2), 4)
+	pr, err := reader.NewParquetReader(fr, new(Student6), 4)
 	if err != nil {
 		log.Println("Can't create parquet reader", err)
 		return
@@ -83,7 +78,7 @@ func main() {
 			pr.SkipRows(10) //skip 10 rows
 			continue
 		}
-		stus := make([]Student2, 10) //read 10 rows
+		stus := make([]Student6, 10) //read 10 rows
 		if err = pr.Read(&stus); err != nil {
 			log.Println("Read error", err)
 		}

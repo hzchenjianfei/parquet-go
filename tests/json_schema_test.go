@@ -1,7 +1,8 @@
-package main
+package tests
 
 import (
 	"log"
+	"testing"
 
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/parquet"
@@ -75,7 +76,7 @@ var jsonSchema string = `
 }
 `
 
-func main() {
+func TestJsonSchema(t *testing.T) {
 	var err error
 	fw, err := local.NewLocalFileWriter("json_schema.parquet")
 	if err != nil {

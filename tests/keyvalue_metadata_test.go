@@ -1,8 +1,8 @@
-package main
+package tests
 
 import (
 	"log"
-	"os"
+	"testing"
 	"time"
 
 	"github.com/xitongsys/parquet-go-source/local"
@@ -11,7 +11,7 @@ import (
 	"github.com/xitongsys/parquet-go/writer"
 )
 
-type Student12 struct {
+type Student5 struct {
 	Name    string  `parquet:"name=name, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	Age     int32   `parquet:"name=age, type=INT32, encoding=PLAIN"`
 	Id      int64   `parquet:"name=id, type=INT64"`
@@ -21,26 +21,27 @@ type Student12 struct {
 	Ignored int32   //without parquet tag and won't write
 }
 
-func main() {
+func TestKeyValueMetaData(t *testing.T) {
 	var err error
-	w, err := os.Create("output/flat.parquet")
+	fw, err := local.NewLocalFileWriter("output/keyvalue.parquet")
 	if err != nil {
 		log.Println("Can't create local file", err)
 		return
 	}
 
 	//write
-	pw, err := writer.NewParquetWriterFromWriter(w, new(Student12), 4)
+	pw, err := writer.NewParquetWriter(fw, new(Student5), 4)
 	if err != nil {
 		log.Println("Can't create parquet writer", err)
 		return
 	}
 
 	pw.RowGroupSize = 128 * 1024 * 1024 //128M
+	pw.PageSize = 8 * 1024              //8K
 	pw.CompressionType = parquet.CompressionCodec_SNAPPY
-	num := 100
+	num := 10
 	for i := 0; i < num; i++ {
-		stu := Student12{
+		stu := Student5{
 			Name:   "StudentName",
 			Age:    int32(20 + i%5),
 			Id:     int64(i),
@@ -52,32 +53,58 @@ func main() {
 			log.Println("Write error", err)
 		}
 	}
+
+	//To add KeyValueMetadata, you must call the Flush after all data written
+	pw.Flush(true)
+
+	//add global KeyValueMetadata
+	pw.Footer.KeyValueMetadata = make([]*parquet.KeyValue, 0)
+	keyValueGlobal := parquet.NewKeyValue()
+	valueGlobal := "valueGlobal"
+	keyValueGlobal.Key, keyValueGlobal.Value = "keyGlobal", &valueGlobal
+
+	//see column information
+	//log.Println(pw.SchemaHandler.MapIndex)
+
+	// add KeyValueMetadata in ColumnChunk
+	for _, rowGroup := range pw.Footer.RowGroups {
+		for _, column := range rowGroup.Columns {
+			pathInSchema := column.MetaData.PathInSchema
+			ln := len(pathInSchema)
+			if pathInSchema[ln-1] == "Weight" {
+				key, value := "unit", "kg"
+				keyValue := parquet.NewKeyValue()
+				keyValue.Key, keyValue.Value = key, &value
+
+				column.MetaData.KeyValueMetadata = []*parquet.KeyValue{
+					keyValue,
+				}
+			}
+		}
+	}
+
 	if err = pw.WriteStop(); err != nil {
 		log.Println("WriteStop error", err)
 		return
 	}
 	log.Println("Write Finished")
-	w.Close()
+	fw.Close()
 
 	///read
-	fr, err := local.NewLocalFileReader("output/flat.parquet")
+	fr, err := local.NewLocalFileReader("output/keyvalue.parquet")
 	if err != nil {
 		log.Println("Can't open file")
 		return
 	}
 
-	pr, err := reader.NewParquetReader(fr, new(Student12), 4)
+	pr, err := reader.NewParquetReader(fr, new(Student5), 4)
 	if err != nil {
 		log.Println("Can't create parquet reader", err)
 		return
 	}
 	num = int(pr.GetNumRows())
-	for i := 0; i < num/10; i++ {
-		if i%2 == 0 {
-			pr.SkipRows(10) //skip 10 rows
-			continue
-		}
-		stus := make([]Student12, 10) //read 10 rows
+	for i := 0; i < num; i++ {
+		stus := make([]Student5, 1)
 		if err = pr.Read(&stus); err != nil {
 			log.Println("Read error", err)
 		}

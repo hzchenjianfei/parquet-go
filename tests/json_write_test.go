@@ -1,14 +1,15 @@
-package main
+package tests
 
 import (
 	"fmt"
 	"log"
+	"testing"
 
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/writer"
 )
 
-func main() {
+func TestJsonWrite(t *testing.T) {
 	var err error
 	md := `
     {

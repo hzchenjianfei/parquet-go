@@ -1,8 +1,9 @@
-package main
+package tests
 
 import (
 	"fmt"
 	"log"
+	"testing"
 	"time"
 
 	"github.com/apache/arrow/go/v12/arrow"
@@ -13,7 +14,7 @@ import (
 	"github.com/xitongsys/parquet-go/writer"
 )
 
-func main() {
+func TestLocalFile(t *testing.T) {
 	fw, err := local.NewLocalFileWriter("arrow.parquet")
 	if err != nil {
 		log.Println("Can't create file", err)

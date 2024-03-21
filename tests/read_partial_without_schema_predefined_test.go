@@ -1,7 +1,8 @@
-package main
+package tests
 
 import (
 	"log"
+	"testing"
 	"time"
 
 	"github.com/xitongsys/parquet-go-source/local"
@@ -11,7 +12,7 @@ import (
 	"github.com/xitongsys/parquet-go/writer"
 )
 
-type Student8 struct {
+type Student9 struct {
 	Name    string           `parquet:"name=name, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	Age     int32            `parquet:"name=age, type=INT32"`
 	Id      int64            `parquet:"name=id, type=INT64"`
@@ -22,16 +23,16 @@ type Student8 struct {
 	Ignored int32            //without parquet tag and won't write
 }
 
-func main() {
+func TestReadPartialWithoutPredefined(t *testing.T) {
 	var err error
-	fw, err := local.NewLocalFileWriter("partial2.parquet")
+	fw, err := local.NewLocalFileWriter("partial2_without_predefined_schema.parquet")
 	if err != nil {
 		log.Println("Can't create local file", err)
 		return
 	}
 
 	//write
-	pw, err := writer.NewParquetWriter(fw, new(Student8), 4)
+	pw, err := writer.NewParquetWriter(fw, new(Student9), 4)
 	if err != nil {
 		log.Println("Can't create parquet writer", err)
 		return
@@ -39,9 +40,9 @@ func main() {
 
 	pw.RowGroupSize = 128 * 1024 * 1024 //128M
 	pw.CompressionType = parquet.CompressionCodec_SNAPPY
-	num := 100
+	num := 10
 	for i := 0; i < num; i++ {
-		stu := Student8{
+		stu := Student9{
 			Name:   "StudentName",
 			Age:    int32(20 + i%5),
 			Id:     int64(i),
@@ -66,7 +67,7 @@ func main() {
 	fw.Close()
 
 	///read
-	fr, err := local.NewLocalFileReader("partial2.parquet")
+	fr, err := local.NewLocalFileReader("partial2_without_predefined_schema.parquet")
 	if err != nil {
 		log.Println("Can't open file")
 		return
@@ -80,9 +81,13 @@ func main() {
 
 	num = int(pr.GetNumRows())
 	//only read scores
-	scores := make([]map[string]int32, num)
-	pr.ReadPartial(&scores, common.ReformPathStr("parquet_go_root.scores"))
-	log.Println(scores)
+	res, err := pr.ReadPartialByNumber(num, common.ReformPathStr("parquet_go_root.scores"))
+	if err != nil {
+		log.Println("Can't read", err)
+		return
+	}
+
+	log.Println(res)
 
 	pr.ReadStop()
 	fr.Close()

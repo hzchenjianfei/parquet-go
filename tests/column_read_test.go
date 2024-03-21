@@ -1,7 +1,8 @@
-package main
+package tests
 
 import (
 	"log"
+	"testing"
 	"time"
 
 	"github.com/xitongsys/parquet-go-source/local"
@@ -21,7 +22,7 @@ type Student1 struct {
 	Score  map[string]int32 `parquet:"name=score, type=MAP, convertedtype=MAP, keytype=BYTE_ARRAY, keyconvertedtype=UTF8, valuetype=INT32"`
 }
 
-func main() {
+func TestColumnRead(t *testing.T) {
 	var err error
 	//write
 	fw, err := local.NewLocalFileWriter("column.parquet")

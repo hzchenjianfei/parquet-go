@@ -1,4 +1,4 @@
-package main
+package tests
 
 import (
 	"bufio"
@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"testing"
 
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/parquet"
@@ -17,7 +18,7 @@ type Shoe struct {
 	ShoeName  string `parquet:"name=shoe_name, type=BYTE_ARRAY, convertedtype=UTF8"`
 }
 
-func main() {
+func TestCsvToParquet(t *testing.T) {
 	var err error
 
 	fw, err := local.NewLocalFileWriter("output/shoes.parquet")

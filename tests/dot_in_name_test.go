@@ -1,7 +1,8 @@
-package main
+package tests
 
 import (
 	"log"
+	"testing"
 
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/parquet"
@@ -19,7 +20,7 @@ type B struct {
 	C int32 `parquet:"name=c, type=INT32, encoding=PLAIN"`
 }
 
-func main() {
+func TestDotInfName(t *testing.T) {
 	var err error
 	fw, err := local.NewLocalFileWriter("a.parquet")
 	if err != nil {

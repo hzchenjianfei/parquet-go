@@ -1,7 +1,8 @@
-package main
+package tests
 
 import (
 	"log"
+	"testing"
 	"time"
 
 	"github.com/xitongsys/parquet-go-source/local"
@@ -21,7 +22,7 @@ type Student10 struct {
 	Ignored int32            //without parquet tag and won't write
 }
 
-func main() {
+func TestReadWithout(t *testing.T) {
 	var err error
 	fw, err := local.NewLocalFileWriter("without_predefined_schema.parquet")
 	if err != nil {

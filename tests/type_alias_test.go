@@ -1,7 +1,8 @@
-package main
+package tests
 
 import (
 	"log"
+	"testing"
 
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/parquet"
@@ -17,7 +18,7 @@ type Student11 struct {
 	Age  AgeInt     `parquet:"name=age, type=INT32, encoding=PLAIN"`
 }
 
-func main() {
+func TestTypeAlias(t *testing.T) {
 	var err error
 	fw, err := local.NewLocalFileWriter("output/type_alias.parquet")
 	if err != nil {

@@ -1,8 +1,9 @@
-package main
+package tests
 
 import (
 	"log"
 	"strconv"
+	"testing"
 
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/reader"
@@ -54,7 +55,7 @@ type TypeList struct {
 	Repeated []int32          `parquet:"name=repeated, type=INT32, repetitiontype=REPEATED"`
 }
 
-func main() {
+func TestType(t *testing.T) {
 	var err error
 	//write
 	fw, err := local.NewLocalFileWriter("type.parquet")

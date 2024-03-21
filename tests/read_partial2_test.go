@@ -1,17 +1,18 @@
-package main
+package tests
 
 import (
-	"encoding/json"
 	"log"
+	"testing"
 	"time"
 
 	"github.com/xitongsys/parquet-go-source/local"
+	"github.com/xitongsys/parquet-go/common"
 	"github.com/xitongsys/parquet-go/parquet"
 	"github.com/xitongsys/parquet-go/reader"
 	"github.com/xitongsys/parquet-go/writer"
 )
 
-type Student3 struct {
+type Student8 struct {
 	Name    string           `parquet:"name=name, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	Age     int32            `parquet:"name=age, type=INT32"`
 	Id      int64            `parquet:"name=id, type=INT64"`
@@ -22,16 +23,16 @@ type Student3 struct {
 	Ignored int32            //without parquet tag and won't write
 }
 
-func main() {
+func TestReadPartial2(t *testing.T) {
 	var err error
-	fw, err := local.NewLocalFileWriter("to_json.parquet")
+	fw, err := local.NewLocalFileWriter("partial2.parquet")
 	if err != nil {
 		log.Println("Can't create local file", err)
 		return
 	}
 
 	//write
-	pw, err := writer.NewParquetWriter(fw, new(Student3), 4)
+	pw, err := writer.NewParquetWriter(fw, new(Student8), 4)
 	if err != nil {
 		log.Println("Can't create parquet writer", err)
 		return
@@ -39,9 +40,9 @@ func main() {
 
 	pw.RowGroupSize = 128 * 1024 * 1024 //128M
 	pw.CompressionType = parquet.CompressionCodec_SNAPPY
-	num := 10
+	num := 100
 	for i := 0; i < num; i++ {
-		stu := Student3{
+		stu := Student8{
 			Name:   "StudentName",
 			Age:    int32(20 + i%5),
 			Id:     int64(i),
@@ -66,7 +67,7 @@ func main() {
 	fw.Close()
 
 	///read
-	fr, err := local.NewLocalFileReader("to_json.parquet")
+	fr, err := local.NewLocalFileReader("partial2.parquet")
 	if err != nil {
 		log.Println("Can't open file")
 		return
@@ -79,19 +80,10 @@ func main() {
 	}
 
 	num = int(pr.GetNumRows())
-	res, err := pr.ReadByNumber(num)
-	if err != nil {
-		log.Println("Can't read", err)
-		return
-	}
-
-	jsonBs, err := json.Marshal(res)
-	if err != nil {
-		log.Println("Can't to json", err)
-		return
-	}
-
-	log.Println(string(jsonBs))
+	//only read scores
+	scores := make([]map[string]int32, num)
+	pr.ReadPartial(&scores, common.ReformPathStr("parquet_go_root.scores"))
+	log.Println(scores)
 
 	pr.ReadStop()
 	fr.Close()

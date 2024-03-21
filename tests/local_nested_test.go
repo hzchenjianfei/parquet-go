@@ -1,8 +1,9 @@
-package main
+package tests
 
 import (
 	"fmt"
 	"log"
+	"testing"
 
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/reader"
@@ -148,6 +149,6 @@ func writeNested() {
 	fr.Close()
 }
 
-func main() {
+func TestLocalNested(t *testing.T) {
 	writeNested()
 }

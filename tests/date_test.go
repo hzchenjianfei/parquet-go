@@ -1,8 +1,9 @@
-package main
+package tests
 
 import (
 	"fmt"
 	"log"
+	"testing"
 
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/parquet"
@@ -16,7 +17,7 @@ type DateItem struct {
 	NullDate     *int32 `parquet:"name=nullDate, type=INT32, convertedtype=DATE, repetitiontype=OPTIONAL"`
 }
 
-func main() {
+func TestDate(t *testing.T) {
 	var err error
 
 	outputFile := fmt.Sprintf("output/date.parquet")
