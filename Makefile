@@ -6,4 +6,7 @@ test:
 format:
 	go fmt github.com/xitongsys/parquet-go/...
 
+clean:
+	find . -name '*.parquet' | xargs rm -f
+
 .PHONEY: test
